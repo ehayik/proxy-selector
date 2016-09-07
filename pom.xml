@@ -4,7 +4,7 @@
 
     <groupId>org.eljaiek.proxy.select</groupId>
     <artifactId>proxy-selector</artifactId>
-    <version>0.0</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
     <name>proxy-selector</name>
 
