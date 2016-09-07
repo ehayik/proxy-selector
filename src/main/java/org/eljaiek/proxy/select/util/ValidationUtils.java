@@ -14,7 +14,8 @@ public final class ValidationUtils {
     }
 
     public static boolean isValidHost(String host) { 
-        return DomainValidator.getInstance().isValid(host) ||
+        return "localhost".equals(host) ||
+                DomainValidator.getInstance().isValid(host) ||
                 InetAddressValidator.getInstance().isValid(host);
     }
 
