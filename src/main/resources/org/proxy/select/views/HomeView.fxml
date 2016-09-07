@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import org.controlsfx.control.StatusBar?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="275.0" prefWidth="466.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.eljaiek.proxy.select.controller.HomeController">
+    <top>
+        <MenuBar BorderPane.alignment="CENTER">
+            <menus>
+                <Menu mnemonicParsing="false" text="Archivo">
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#search" text=" Buscar conexión" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <MenuItem mnemonicParsing="false" onAction="#close" text="Salir" />
+                    </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Editar">
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#newProxy" text="Nuevo Proxy" />
+                        <MenuItem mnemonicParsing="false" onAction="#removeProxy" text="Eliminar Proxy" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <MenuItem mnemonicParsing="false" onAction="#settings" text="Preferencias" />
+                    </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Ayuda">
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#aboutBox" text="Acerca de" />
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+    </top>
+    <center>
+        <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+            <top>
+                <ToolBar prefHeight="19.0" prefWidth="466.0" BorderPane.alignment="CENTER">
+                    <items>
+                        <Button mnemonicParsing="false" onAction="#close"> 
+                            <graphic>
+                                <ImageView>
+                                    <Image url="@../assets/exit24.png" />
+                                </ImageView>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Salir" />
+                            </tooltip>
+                        </Button>
+                        <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="1.0" />
+                        <Button mnemonicParsing="false" onAction="#settings"> 
+                            <graphic>
+                                <ImageView>
+                                    <Image url="@../assets/settings24.png" />
+                                </ImageView>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Preferencias" />
+                            </tooltip>
+                        </Button>
+                        <Button fx:id="searchButton" mnemonicParsing="false" onAction="#search"> 
+                            <graphic>
+                                <ImageView>
+                                    <Image url="@../assets/find24.png" />
+                                </ImageView>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Buscar conexión" />
+                            </tooltip>
+                        </Button>
+                  <Separator layoutX="54.0" layoutY="10.0" orientation="VERTICAL" prefHeight="0.0" prefWidth="1.0" />
+                        <Button mnemonicParsing="false" onAction="#newProxy"> 
+                            <graphic>
+                                <ImageView>
+                                    <Image url="@../assets/add24.png" />
+                                </ImageView>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Añadir Proxy" />
+                            </tooltip>
+                        </Button>
+                        <Button mnemonicParsing="false" onAction="#removeProxy"> 
+                            <graphic>
+                                <ImageView>
+                                    <Image url="@../assets/remove24.png" />
+                                </ImageView>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Eliminar Proxy" />
+                            </tooltip>
+                        </Button>
+                    </items>
+                </ToolBar>
+            </top>
+            <center>
+                <TableView fx:id="proxiesTableView" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                    <placeholder>
+                        <Label text="No existen proxies disponibles." />
+                    </placeholder>
+                    <columns>
+                        <TableColumn prefWidth="75.0" text="Nombre">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="name" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn prefWidth="75.0" text="Host/Port">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="hostPort" />
+                            </cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />                        
+                    </columnResizePolicy>
+                </TableView>
+            </center>
+        </BorderPane>
+    </center>
+    <bottom>
+        <StatusBar fx:id="statusBar" prefHeight="12.0" prefWidth="466.0" text="" BorderPane.alignment="CENTER" />
+    </bottom>
+</BorderPane>
