@@ -7,14 +7,14 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="289.0" prefWidth="465.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.eljaiek.proxy.select.controller.AboutBoxController">
+<TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="289.0" prefWidth="465.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.eljaiek.proxy.select.controller.AboutBoxController">
     <tabs>
         <Tab text="Acerca de">
             <content>
@@ -64,7 +64,7 @@
                                         <Insets left="105.0" top="4.0" />
                                     </HBox.margin>
                                 </Label>
-                                <Hyperlink onAction="#openEmail" text="Eduardo Eljaiek Rodriguez" >
+                                <Hyperlink onAction="#openEmail" text="Eduardo Eljaiek Rodriguez">
                                     <tooltip>
                                         <Tooltip fx:id="feedbackTooltip" text="eduardo.eljaiek@gmail.com" />
                                     </tooltip>
@@ -82,7 +82,7 @@
         </Tab>
         <Tab text="Licencia">
             <content>
-                <TextArea prefHeight="200.0" prefWidth="200.0" text="Este es un software libre: usted puede redistribuirlo o modificarlo bajo los terminos de le licencia public general (GNU, por sus siglas en ingles), como ha sido publicado por la fundacion de sotware libre.&#10;&#10;Este programa es distribuido con la esperanza de que sea util pero SIN NINGUNA GARANTIA; inclusive sin la garantia de MERCANTIBILIDAD o CUALQUIER AJUSTE PARA ALGUN PROPOSITO PARTICULAR. Vea la GNU para mas detalles.&#10;&#10;Usted debira haber recibido una copia de GNU junto con este programa. Si no, vea &lt;http://www.gnu.org/licenses/&gt;" wrapText="true" />
+                <TextArea prefHeight="200.0" prefWidth="200.0" text="Este es un software libre: usted puede redistribuirlo o modificarlo bajo los términos de le licencia publica general (GNU, por sus siglas en ingles), como ha sido publicado por la fundación de software libre.&#10;&#10;Este programa es distribuido con la esperanza de que sea útil, pero SIN NINGUNA GARANTIA; inclusive sin la garantía de MERCANTIBILIDAD o CUALQUIER AJUSTE PARA ALGUN PROPOSITO PARTICULAR. Vea la GNU para más detalles.&#10;&#10;Usted deberá haber recibido una copia de GNU junto con este programa. De lo contrario vaya a &lt;http://www.gnu.org/licenses/&gt;&#10;" wrapText="true" />
             </content>
         </Tab>
     </tabs>
