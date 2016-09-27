@@ -1,17 +1,22 @@
 package org.eljaiek.proxy.select.services;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
-import java.util.concurrent.Callable;
+import java.net.URLConnection;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.eljaiek.proxy.select.domain.DProxy;
+import org.eljaiek.proxy.select.domain.DSettings;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,27 +32,68 @@ public final class ConnectionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConnectionService.class);
 
-    public final boolean ping(String url, long timeout, Proxy proxy) {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<Boolean> task = executor.submit(() -> {
-            try {
-                HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection(proxy);
-                return conn.getResponseCode() == OK_CODE;
-            } catch (IOException ex) {
-                LOG.error(ex.getMessage(), ex);
-                return false;
-            }
-        });
+    private final PreferenceService preferenceService;
+
+    public ConnectionService(PreferenceService preferenceService) {
+        this.preferenceService = preferenceService;
+    }
+
+    public final boolean ping() {
+        return ping(null);
+    }
+
+    public final boolean ping(DProxy proxy) {
+        final DSettings settings = preferenceService.load();
 
         try {
-            return task.get(timeout, TimeUnit.SECONDS);
+            final Future<Boolean> pingTask = preparePing(proxy, settings);
+            return pingTask.get(settings.getTimeout(), settings.getTimeoutUnit());
         } catch (InterruptedException | ExecutionException | TimeoutException ex) {
             LOG.error(ex.getMessage(), ex);
             return false;
         }
     }
 
-    public final boolean ping(String url, long timeout) {
-        return ping(url, timeout, Proxy.NO_PROXY);
+    private Future<Boolean> preparePing(DProxy proxy, DSettings settings) {
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        return executor.submit(() -> {
+            try {
+                URLConnection connection = new URL(settings.getUrl())
+                        .openConnection(createProxySocket(proxy));
+
+                if (((HttpURLConnection) connection).getResponseCode() != OK_CODE) {
+                    return false;
+                } else {
+                    return assertPageTitle(readPage(connection), settings.getPageTitle());
+                }
+
+            } catch (IOException ex) {
+                LOG.error(ex.getMessage(), ex);
+                return false;
+            }
+        });
+    }
+
+    private String readPage(URLConnection connection) throws IOException {
+        String line = null;
+        final StringBuffer htmlPage = new StringBuffer();
+        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+        while ((line = in.readLine()) != null) {
+            htmlPage.append(line);
+        }
+
+        return htmlPage.toString();
+    }
+
+    private boolean assertPageTitle(String page, String title) {
+        Document document = Jsoup.parse(page);
+        return title.equals(document.head().getElementsByTag("title").text());
+    }
+
+    private Proxy createProxySocket(DProxy proxy) {
+        return proxy != null ? new Proxy(Proxy.Type.HTTP,
+                new InetSocketAddress(proxy.getHost(), proxy.getPort()))
+                : Proxy.NO_PROXY;
     }
 }

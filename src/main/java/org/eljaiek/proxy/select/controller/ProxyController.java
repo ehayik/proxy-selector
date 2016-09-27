@@ -19,6 +19,7 @@ import org.eljaiek.proxy.select.util.ValidationUtils;
 import org.eljaiek.proxy.select.components.AlertManager;
 import org.eljaiek.proxy.select.components.MessageResolver;
 import org.eljaiek.proxy.select.components.ViewManager;
+import org.eljaiek.proxy.select.domain.DProxy;
 import org.eljaiek.proxy.select.services.DuplicateProxyException;
 import org.eljaiek.proxy.select.services.ProxyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class ProxyController implements Initializable {
 
-    private static final int DEF_PORT = 8080;
+    private static final String DEF_PORT = "80";
 
     @FXML
     private TextField nameField;
@@ -40,21 +41,21 @@ public class ProxyController implements Initializable {
     private TextField hostField;
 
     @FXML
-    private Spinner<Integer> portField;
-    
+    private TextField portField;
+
     @FXML
     private Button okButton;
-    
+
     @Autowired
     private MessageResolver messages;
 
     private final ProxyService proxyService;
 
-    private final ViewManager viewManager;    
-    
+    private final ViewManager viewManager;
+
     @Autowired
-    private AlertManager alertManager;  
-    
+    private AlertManager alertManager;
+
     private final ValidationSupport validationSupport = new ValidationSupport();
 
     public ProxyController(ProxyService proxyService, ViewManager viewManager) {
@@ -64,68 +65,41 @@ public class ProxyController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        validationSupport.registerValidator(nameField, true, 
+        portField.setTextFormatter(new LongTextFomatter());
+        portField.setText(DEF_PORT);
+
+        validationSupport.registerValidator(nameField, true,
                 Validator.createEmptyValidator(messages.getMessage("field.required")));
-        
-        validationSupport.registerValidator(hostField, true, (Control t, String value) -> {        
-            return ValidationResult.fromMessageIf(t, messages.getMessage("proxy.host.invalid"), 
-                    Severity.ERROR, 
+
+        validationSupport.registerValidator(portField, true,
+                Validator.createEmptyValidator(messages.getMessage("field.required")));
+
+        validationSupport.registerValidator(hostField, true, (Control t, String value) -> {
+            return ValidationResult.fromMessageIf(t, messages.getMessage("proxy.host.invalid"),
+                    Severity.ERROR,
                     !ValidationUtils.isValidHost(value));
-        }); 
-        
+        });
+
         validationSupport.invalidProperty()
-                .addListener((obs, oldValue, newValue) -> okButton.setDisable(newValue));                      
-        
-        portField.setValueFactory(new SpinnerValueFactory<Integer>() {
-            @Override
-            public void decrement(int steps) {
+                .addListener((obs, oldValue, newValue) -> okButton.setDisable(newValue));
 
-                if (getValue() == 1) {
-                    setValue(DEF_PORT);
-                }
-
-                setValue(portField.getValue() - steps);
-            }
-
-            @Override
-            public void increment(int steps) {
-                setValue(portField.getValue() + steps);
-            }
-        });
-
-        portField.getValueFactory().setConverter(new StringConverter<Integer>() {
-            @Override
-            public String toString(Integer object) {
-                return String.valueOf(object);
-            }
-
-            @Override
-            public Integer fromString(String string) {
-
-                try {
-                    return Integer.parseInt(string);
-                } catch (NumberFormatException e) {
-                    return DEF_PORT;
-                }
-            }
-        });
-
-        portField.getValueFactory().setValue(DEF_PORT);
     }
 
     @FXML
     void save(ActionEvent event) {
 
         try {
-            proxyService.add(nameField.getText(),
+            proxyService.add(new DProxy(
+                    nameField.getText(),
                     hostField.getText(),
-                    portField.getValue());
+                    Integer.parseInt(portField.getText())
+            ));
             viewManager.close();
         } catch (DuplicateProxyException ex) {
-            alertManager.error(viewManager.getView().get(), 
-                    messages.getMessage("proxy.error.alert.header"), 
+            alertManager.error(viewManager.getView().get(),
+                    messages.getMessage("proxy.error.alert.header"),
                     messages.getMessage("proxy.error.alert.message"));
-        }        
+        }
     }
 
     @FXML

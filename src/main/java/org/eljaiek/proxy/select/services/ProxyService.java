@@ -22,18 +22,17 @@ public final class ProxyService {
 
     private final List<DProxy> proxies = new ArrayList<>();
 
-    private final ObjectMapper mapper;
+    private final ObjectMapper jsonMapper;
 
     public ProxyService(ObjectMapper mapper) {
-        this.mapper = mapper;
+        this.jsonMapper = mapper;
     }
 
     public final List<DProxy> list() {
         return proxies;
     }
 
-    public final DProxy add(String name, String host, int port) {
-        DProxy proxy = new DProxy(name, host, port);
+    public final DProxy add(DProxy proxy) {       
 
         if (exists(proxy)) {
             throw new DuplicateProxyException();
@@ -59,7 +58,7 @@ public final class ProxyService {
 
     public final void exportToJson(String file) {
         try {
-            mapper.writeValue(new File(file), proxies);
+            jsonMapper.writeValue(new File(file), proxies);
         } catch (IOException ex) {
             LOG.error(ex.getMessage(), ex);
         }
@@ -68,7 +67,7 @@ public final class ProxyService {
     public final List<DProxy> importFromJson(String file) {
        
         try {
-            DProxy[] arr = mapper.readValue(new File(file), DProxy[].class);
+            DProxy[] arr = jsonMapper.readValue(new File(file), DProxy[].class);
             proxies.clear();
             proxies.addAll(Arrays.asList(arr));
         } catch (IOException ex) {

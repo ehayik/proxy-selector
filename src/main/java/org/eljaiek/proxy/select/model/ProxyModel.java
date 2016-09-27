@@ -1,7 +1,9 @@
 package org.eljaiek.proxy.select.model;
 
+import fr.xebia.extras.selma.Selma;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.beans.property.IntegerProperty;
@@ -15,6 +17,8 @@ import org.eljaiek.proxy.select.domain.DProxy;
  * @author eduardo.eljaiek
  */
 public class ProxyModel {
+    
+ //   private static final ProxyModelMapper PROXY_MODEL_MAPPER = Selma.builder(ProxyModelMapper.class).build();
 
     private final StringProperty name = new SimpleStringProperty();
 
@@ -56,19 +60,5 @@ public class ProxyModel {
 
     public String getHostPort() {
         return host.get().concat(":").concat(String.valueOf(port.get()));
-    }
-
-    public Proxy getProxy() {        
-        return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host.get(), port.get()));
-    }
-
-    public static List<ProxyModel> toList(List<DProxy> proxies) {
-        return proxies.stream().map(p -> {
-            ProxyModel m = new ProxyModel();
-            m.setName(p.getName());
-            m.setHost(p.getHost());
-            m.setPort(p.getPort());
-            return m;
-        }).collect(Collectors.toList());
     }
 }

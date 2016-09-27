@@ -2,15 +2,15 @@ package org.eljaiek.proxy.select.controller;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
-import javafx.util.StringConverter;
 import org.controlsfx.validation.Severity;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
@@ -18,8 +18,7 @@ import org.eljaiek.proxy.select.util.ValidationUtils;
 import org.eljaiek.proxy.select.components.MessageResolver;
 import org.eljaiek.proxy.select.components.ViewManager;
 import org.eljaiek.proxy.select.domain.DSettings;
-import org.eljaiek.proxy.select.services.PreferencesService;
-import static org.eljaiek.proxy.select.services.PreferencesService.TIMEOUT_DEFAULT;
+import org.eljaiek.proxy.select.services.PreferenceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -28,8 +27,8 @@ import org.springframework.stereotype.Controller;
  */
 @Controller
 public class SettingsController implements Initializable {
-
-    private final PreferencesService prefService;
+    
+    private final PreferenceService prefService;
 
     private final ViewManager viewManager;
 
@@ -40,16 +39,22 @@ public class SettingsController implements Initializable {
     private TextField urlField;
 
     @FXML
-    private Spinner<Long> timeoutField;
+    private TextField titleField;
+
+    @FXML
+    private TextField timeoutField;
+
+    @FXML
+    private ComboBox<TimeUnitModel> timeUnitBox;
 
     @FXML
     private Button okButton;
 
     private final ValidationSupport validationSupport = new ValidationSupport();
 
-    public SettingsController(PreferencesService prefService, ViewManager viewManager) {
+    public SettingsController(PreferenceService prefService, ViewManager viewManager) {
         this.prefService = prefService;
-        this.viewManager = viewManager;
+        this.viewManager = viewManager;        
     }
 
     /**
@@ -62,46 +67,22 @@ public class SettingsController implements Initializable {
                     Severity.ERROR,
                     !ValidationUtils.isValidUrl(value));
         });
+        
         validationSupport.invalidProperty()
-                .addListener((obs, oldValue, newValue) -> okButton.setDisable(newValue));
-
-        timeoutField.setValueFactory(new SpinnerValueFactory<Long>() {
-            @Override
-            public void decrement(int steps) {
-
-                if (getValue() == 1) {
-                    setValue(TIMEOUT_DEFAULT);
-                }
-
-                setValue(timeoutField.getValue() - steps);
-            }
-
-            @Override
-            public void increment(int steps) {
-                setValue(timeoutField.getValue() + steps);
-            }
-        });
-
-        timeoutField.getValueFactory().setConverter(new StringConverter<Long>() {
-            @Override
-            public String toString(Long object) {
-                return String.valueOf(object);
-            }
-
-            @Override
-            public Long fromString(String string) {
-
-                try {
-                    return Long.parseLong(string);
-                } catch (NumberFormatException e) {
-                    return TIMEOUT_DEFAULT;
-                }
-            }
-        });
-
-        DSettings prefs = prefService.load();
-        timeoutField.getValueFactory().setValue(prefs.getTimeout());
-        urlField.setText(prefs.getUrl());
+                .addListener((obs, oldValue, newValue) -> okButton.setDisable(newValue));      
+        
+        timeoutField.setTextFormatter(new LongTextFomatter());
+        timeUnitBox.setItems(FXCollections.observableArrayList(
+                new TimeUnitModel(messages.getMessage("timeUnit.MILLISECONDS"), TimeUnit.MILLISECONDS),
+                new TimeUnitModel(messages.getMessage("timeUnit.SECONDS"), TimeUnit.SECONDS),
+                new TimeUnitModel(messages.getMessage("timeUnit.MINUTES"), TimeUnit.MINUTES)               
+        ));      
+        
+        DSettings settings = prefService.load();
+        timeoutField.setText(String.valueOf(settings.getTimeout()));
+        urlField.setText(settings.getUrl());
+        titleField.setText(settings.getPageTitle());
+        setSelectedTimeUnit(settings.getTimeoutUnit());
     }
 
     @FXML
@@ -110,10 +91,41 @@ public class SettingsController implements Initializable {
     }
 
     @FXML
-    void save(ActionEvent event) {
-        DSettings prefs = new DSettings(urlField.getText(),
-                timeoutField.getValueFactory().getValue());
-        prefService.save(prefs);
+    void save(ActionEvent event) {        
+        prefService.save(DSettings
+                .build()
+                .url(urlField.getText())
+                .pageTitle(titleField.getText())
+                .timeout(Long.parseLong(timeoutField.getText())) 
+                .timeoutUnit(timeUnitBox.getSelectionModel().getSelectedItem().timeUnit)
+                .get());
         viewManager.close();
     }
+    
+    private void setSelectedTimeUnit(TimeUnit timeUnit) {
+        final TimeUnitModel selectedTimeUnit = timeUnitBox
+                .getItems()
+                .stream()
+                .filter(tm -> tm.timeUnit == timeUnit)
+                .findFirst()
+                .get();
+        timeUnitBox.getSelectionModel().select(selectedTimeUnit);
+    }
+    
+    private class TimeUnitModel {
+        
+        private final String label;
+                
+        private final TimeUnit timeUnit;
+
+        public TimeUnitModel(String label, TimeUnit timeUnit) {
+            this.label = label;
+            this.timeUnit = timeUnit;
+        }    
+
+        @Override
+        public String toString() {
+            return label;
+        } 
+    }    
 }

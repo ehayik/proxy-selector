@@ -7,7 +7,6 @@ import javafx.stage.Stage;
 import org.eljaiek.proxy.select.components.ViewManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import static javafx.application.Application.launch;
-import javafx.stage.WindowEvent;
 import org.eljaiek.proxy.select.services.ProxyService;
 import org.springframework.core.env.Environment;
 
@@ -30,11 +29,7 @@ public class MainApp extends Application {
         context.init();   
         String dataFile = env.getProperty("app.data.file");
         proxyService.importFromJson(dataFile);
-        stage.setTitle(getTitle());   
-        stage.setOnCloseRequest((WindowEvent evt) -> {
-            proxyService.exportToJson(dataFile);
-        });
-        
+        stage.setTitle(getTitle());
         viewManager.init(stage);
     }
     

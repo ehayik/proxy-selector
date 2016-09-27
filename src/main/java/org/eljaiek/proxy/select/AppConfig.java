@@ -3,8 +3,10 @@ package org.eljaiek.proxy.select;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import fr.xebia.extras.selma.Selma;
 import javafx.scene.image.Image;
 import org.eljaiek.proxy.select.components.ViewManager;
+import org.eljaiek.proxy.select.model.ProxyModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -44,5 +46,10 @@ public class AppConfig {
         source.setBasenames("messages");
         source.setFallbackToSystemLocale(false);
         return source;
+    }
+    
+    @Bean
+    public ProxyModelMapper proxyModelMapper() {
+        return Selma.builder(ProxyModelMapper.class).build();
     }
 }
