@@ -1,17 +1,12 @@
 package org.eljaiek.proxy.select.controller;
 
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.net.URL;
-import javafx.concurrent.Service;
+import java.time.Duration;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -24,17 +19,18 @@ import org.eljaiek.proxy.select.model.ProxyModel;
 import org.eljaiek.proxy.select.components.AlertManager;
 import org.eljaiek.proxy.select.components.MessageResolver;
 import org.eljaiek.proxy.select.components.ViewManager;
-import org.eljaiek.proxy.select.domain.DSettings;
+import org.eljaiek.proxy.select.domain.DProxy;
 import org.eljaiek.proxy.select.model.ProxyModelMapper;
 import org.eljaiek.proxy.select.services.ConnectionService;
-import org.eljaiek.proxy.select.services.PreferenceService;
 import org.eljaiek.proxy.select.services.ProxyService;
+import org.reactfx.util.FxTimer;
+import org.reactfx.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 
 @Controller
-public class HomeController implements Initializable {
+public final class HomeController implements Initializable {
 
     private static final String PROXY_VIEW = "/org/proxy/select/views/ProxyView.fxml";
 
@@ -58,9 +54,6 @@ public class HomeController implements Initializable {
     private ConnectionService connectionService;
 
     @Autowired
-    private PreferenceService prefService;
-
-    @Autowired
     private Environment env;
 
     @Autowired
@@ -75,14 +68,22 @@ public class HomeController implements Initializable {
     @FXML
     private StatusBar statusBar;
 
+    private final Timer pingTimer;
+
     private final ImageView startIcon = new ImageView("/org/proxy/select/assets/find24.png");
 
     private final ImageView cancelIcon = new ImageView("/org/proxy/select/assets/stop24.png");
 
+    public HomeController() {
+        this.pingTimer = FxTimer.createPeriodic(Duration.ofMillis(1000), this::startPing);
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        proxiesTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        refreshList();
+        proxiesTableView
+                .getSelectionModel()
+                .setSelectionMode(SelectionMode.MULTIPLE);
+        refreshProxiesList();
     }
 
     @FXML
@@ -95,6 +96,7 @@ public class HomeController implements Initializable {
 
     @FXML
     void close(ActionEvent event) {
+        pingTimer.stop();
         viewManager.close();
     }
 
@@ -110,7 +112,7 @@ public class HomeController implements Initializable {
         viewManager.modal(viewManager.getView().get(),
                 messages.getMessage("proxy.view.title"),
                 PROXY_VIEW);
-        refreshList();
+        refreshProxiesList();
         saveChanges();
     }
 
@@ -124,38 +126,73 @@ public class HomeController implements Initializable {
             alertManager.confirmation(viewManager.getView().get(),
                     messages.getMessage("proxy.confirm.alert.header"),
                     messages.getMessage("proxy.confirm.alert.message"),
-                    () -> {
-                        items.forEach(pm -> {
-                            proxyService.remove(pm.getHost(), pm.getPort());
-                        });
-
-                        refreshList();
-                        saveChanges();
-                    });
+                    () -> removeProxies(items));
         }
     }
 
     @FXML
     void search(ActionEvent event) {
+        searchButton.setGraphic(cancelIcon);
+        searchButton.setOnAction(evt -> stopPing());
         statusBar.setText(messages.getMessage("home.statusBar.text"));
         statusBar.setProgress(-1);
         viewManager.getView().get().setIconified(true);
-        final SearchService service = new SearchService();
-        service.setOnCancelled(evt -> searchCancelled());
-        service.setOnSucceeded(evt -> {
-            searchCancelled();
-            alertManager.traySuccess(messages.getMessage("home.conn.success.header"),
-                    messages.getMessage("home.conn.success.message", evt.getSource().getValue()));
+        pingTimer.restart();
 
+//        final PingProxiesJob service = pingProxiesJobFactory.create();
+//        service.setOnCancelled(evt -> searchCancelled());
+//        service.setOnConnectionSucceeded(this::onConnectionSucceeded);
+//        service.setOnConnectionFailed(this::onConnectionFailed);
+//        service.messageProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+//            statusBar.setText(newValue);
+//        });
+//
+//        service.start(proxiesTableView.getItems());
+    }
+
+    private void stopPing() {
+        pingTimer.stop();
+        statusBar.setText("");
+        statusBar.setProgress(0);
+        searchButton.setGraphic(startIcon);
+        searchButton.setOnAction(this::search);
+    }
+
+    private void startPing() {
+        proxiesTableView.getItems().forEach(proxyModel -> {
+            updateProgressMessage(proxyModel.getHostPort());
+            final DProxy proxy = proxyModelMapper.asDProxy(proxyModel);
+            final boolean isConnected = connectionService.ping(proxy);
+
+            if (isConnected && !proxyModel.isConnected()) {
+                alertOnConnectionSucceeded(proxyModel.getName());
+            } else if (!isConnected && proxyModel.isConnected()) {
+                alertOnConnectionFailed(proxyModel.getName());
+            }
+            
+            proxyModel.setConnected(isConnected);
         });
+    }
 
-        searchButton.setGraphic(cancelIcon);
-        searchButton.setOnAction(evt -> service.cancel());
-        service.messageProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            statusBar.setText(newValue);
-        });
+    private void updateProgressMessage(String proxyName) {
+        final String message = messages.getMessage(
+                "home.conn.progress.text", proxyName
+        );
+        statusBar.setText(message);
+    }
 
-        service.start();
+    private void alertOnConnectionSucceeded(String proxyName) {
+        final String header = messages.getMessage("home.conn.success.header");
+        final String message = messages.getMessage("home.conn.success.message",
+                proxyName);
+        alertManager.traySuccess(header, message);
+    }
+
+    private void alertOnConnectionFailed(String proxyName) {
+        final String header = messages.getMessage("home.conn.fail.header");
+        final String message = messages.getMessage("home.conn.fail.message",
+                proxyName);
+        alertManager.trayError(header, message);
     }
 
     private void searchCancelled() {
@@ -165,7 +202,16 @@ public class HomeController implements Initializable {
         searchButton.setOnAction(this::search);
     }
 
-    private void refreshList() {
+    private void removeProxies(List<ProxyModel> proxyModels) {
+        proxyModels.forEach(pm -> {
+            proxyService.remove(pm.getHost(), pm.getPort());
+        });
+
+        refreshProxiesList();
+        saveChanges();
+    }
+
+    private void refreshProxiesList() {
         List<ProxyModel> proxyModels = proxyService
                 .list()
                 .stream()
@@ -177,51 +223,5 @@ public class HomeController implements Initializable {
     private void saveChanges() {
         String dataFile = env.getProperty("app.data.file");
         proxyService.exportToJson(dataFile);
-    }
-
-    class SearchService extends Service<String> {
-
-        private final AtomicBoolean found;
-
-        public SearchService() {
-            this.found = new AtomicBoolean();
-        }
-
-        @Override
-        public boolean cancel() {
-            found.set(true);
-            return super.cancel();
-        }
-
-        @Override
-        protected Task<String> createTask() {
-            return new Task<String>() {
-                @Override
-                protected String call() throws Exception {
-
-                    while (!found.get()) {
-                        final DSettings settings = prefService.load();
-                        List<ProxyModel> proxyModels = proxiesTableView.getItems();
-
-                        if (proxyModels.isEmpty()) {
-                            connectionService.ping();
-                            updateMessage(messages.getMessage("home.direct.conn.success.message"));
-                            continue;
-                        }
-
-                        for (ProxyModel proxyModel : proxiesTableView.getItems()) {
-                            updateMessage(messages.getMessage("home.conn.progress.text", proxyModel.getHostPort()));
-
-                            if (connectionService.ping(proxyModelMapper.asDProxy(proxyModel))) {
-                                found.set(true);
-                                return proxyModel.getHostPort();
-                            }
-                        }
-                    }
-
-                    return null;
-                }
-            };
-        }
     }
 }

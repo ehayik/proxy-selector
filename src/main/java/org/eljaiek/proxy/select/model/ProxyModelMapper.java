@@ -8,7 +8,7 @@ import org.eljaiek.proxy.select.domain.DProxy;
  *
  * @author eduardo.eljaiek
  */
-@Mapper( withIgnoreFields="hostport" )
+@Mapper( withIgnoreFields={"hostport", "connected"} )
 public interface ProxyModelMapper {
     
     ProxyModel asProxyModel(DProxy proxy);

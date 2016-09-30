@@ -1,30 +1,25 @@
 package org.eljaiek.proxy.select.model;
 
-import fr.xebia.extras.selma.Selma;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import org.eljaiek.proxy.select.domain.DProxy;
 
 /**
  *
  * @author eduardo.eljaiek
  */
 public class ProxyModel {
-    
- //   private static final ProxyModelMapper PROXY_MODEL_MAPPER = Selma.builder(ProxyModelMapper.class).build();
 
     private final StringProperty name = new SimpleStringProperty();
 
     private final StringProperty host = new SimpleStringProperty();
 
     private final IntegerProperty port = new SimpleIntegerProperty();
+
+    private final BooleanProperty connected = new SimpleBooleanProperty();
 
     public String getName() {
         return name.get();
@@ -60,5 +55,17 @@ public class ProxyModel {
 
     public String getHostPort() {
         return host.get().concat(":").concat(String.valueOf(port.get()));
+    }
+
+    public boolean isConnected() {
+        return connected.get();
+    }
+
+    public void setConnected(boolean value) {
+        connected.set(value);
+    }
+
+    public BooleanProperty connectedProperty() {
+        return connected;
     }
 }
