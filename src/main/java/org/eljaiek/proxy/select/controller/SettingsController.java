@@ -93,12 +93,12 @@ public class SettingsController implements Initializable {
     @FXML
     void save(ActionEvent event) {        
         prefService.save(DSettings
-                .build()
+                .builder()
                 .url(urlField.getText())
                 .pageTitle(titleField.getText())
                 .timeout(Long.parseLong(timeoutField.getText())) 
                 .timeoutUnit(timeUnitBox.getSelectionModel().getSelectedItem().timeUnit)
-                .get());
+                .build());
         viewManager.close();
     }
     

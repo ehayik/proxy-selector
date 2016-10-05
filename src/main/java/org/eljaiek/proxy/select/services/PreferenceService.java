@@ -37,12 +37,12 @@ public final class PreferenceService {
 
     public final DSettings load() {        
         return DSettings
-                .build()
+                .builder()
                 .url(prefs.get(URL_KEY, URL_DEFAULT))
                 .timeout(prefs.getLong(TIMEOUT_KEY, TIMEOUT_DEFAULT))
                 .timeoutUnit(TimeUnit.valueOf(prefs.get(TIMEUNIT_KEY, TIMEUNIT_DEFAULT)))
                 .pageTitle(prefs.get(TITLE_KEY, TITLE_DEFAULT))
-                .get();
+                .build();
     }
 
     public final void save(DSettings settings) {

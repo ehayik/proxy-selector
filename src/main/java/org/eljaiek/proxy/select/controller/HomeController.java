@@ -4,6 +4,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -73,6 +74,8 @@ public final class HomeController implements Initializable {
     private final ImageView startIcon = new ImageView("/org/proxy/select/assets/find24.png");
 
     private final ImageView cancelIcon = new ImageView("/org/proxy/select/assets/stop24.png");
+    
+    private final AtomicBoolean isPingTimerBusy = new AtomicBoolean(false);
 
     public HomeController() {
         this.pingTimer = FxTimer.createPeriodic(Duration.ofMillis(1000), this::startPing);
@@ -138,27 +141,21 @@ public final class HomeController implements Initializable {
         statusBar.setProgress(-1);
         viewManager.getView().get().setIconified(true);
         pingTimer.restart();
-
-//        final PingProxiesJob service = pingProxiesJobFactory.create();
-//        service.setOnCancelled(evt -> searchCancelled());
-//        service.setOnConnectionSucceeded(this::onConnectionSucceeded);
-//        service.setOnConnectionFailed(this::onConnectionFailed);
-//        service.messageProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-//            statusBar.setText(newValue);
-//        });
-//
-//        service.start(proxiesTableView.getItems());
     }
 
     private void stopPing() {
         pingTimer.stop();
-        statusBar.setText("");
-        statusBar.setProgress(0);
-        searchButton.setGraphic(startIcon);
-        searchButton.setOnAction(this::search);
+        isPingTimerBusy.set(false);
+        onSearchCancelled();
     }
 
     private void startPing() {
+        
+        if (isPingTimerBusy.get()) {
+            return;
+        }
+        
+        isPingTimerBusy.set(true);
         proxiesTableView.getItems().forEach(proxyModel -> {
             updateProgressMessage(proxyModel.getHostPort());
             final DProxy proxy = proxyModelMapper.asDProxy(proxyModel);
@@ -184,18 +181,18 @@ public final class HomeController implements Initializable {
     private void alertOnConnectionSucceeded(String proxyName) {
         final String header = messages.getMessage("home.conn.success.header");
         final String message = messages.getMessage("home.conn.success.message",
-                proxyName);
-        alertManager.traySuccess(header, message);
+                proxyName); 
+        alertManager.traySuccess(header, message);            
     }
 
     private void alertOnConnectionFailed(String proxyName) {
         final String header = messages.getMessage("home.conn.fail.header");
         final String message = messages.getMessage("home.conn.fail.message",
                 proxyName);
-        alertManager.trayError(header, message);
+        alertManager.trayError(header, message);             
     }
 
-    private void searchCancelled() {
+    private void onSearchCancelled() {
         statusBar.setText("");
         statusBar.setProgress(0);
         searchButton.setGraphic(startIcon);
