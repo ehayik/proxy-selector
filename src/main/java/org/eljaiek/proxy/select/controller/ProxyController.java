@@ -16,7 +16,7 @@ import org.eljaiek.proxy.select.util.ValidationUtils;
 import org.eljaiek.proxy.select.components.AlertManager;
 import org.eljaiek.proxy.select.components.MessageResolver;
 import org.eljaiek.proxy.select.components.ViewManager;
-import org.eljaiek.proxy.select.domain.DProxy;
+import org.eljaiek.proxy.select.services.ProxyDetails;
 import org.eljaiek.proxy.select.services.DuplicateProxyException;
 import org.eljaiek.proxy.select.services.ProxyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,7 +86,7 @@ public class ProxyController implements Initializable {
     void save(ActionEvent event) {
 
         try {
-            proxyService.add(new DProxy(
+            proxyService.add(new ProxyDetails(
                     nameField.getText(),
                     hostField.getText(),
                     Integer.parseInt(portField.getText())

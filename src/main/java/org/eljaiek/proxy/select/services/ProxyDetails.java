@@ -1,4 +1,4 @@
-package org.eljaiek.proxy.select.domain;
+package org.eljaiek.proxy.select.services;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DProxy implements Serializable {
+public class ProxyDetails implements Serializable {
 
     private String name;
 

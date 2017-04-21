@@ -13,8 +13,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
-import org.eljaiek.proxy.select.domain.DProxy;
-import org.eljaiek.proxy.select.domain.DSettings;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -32,9 +30,9 @@ public final class ConnectionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConnectionService.class);
 
-    private final PreferenceService preferenceService;
+    private final PreferencesService preferenceService;
 
-    public ConnectionService(PreferenceService preferenceService) {
+    public ConnectionService(PreferencesService preferenceService) {
         this.preferenceService = preferenceService;
     }
 
@@ -42,8 +40,8 @@ public final class ConnectionService {
         return ping(null);
     }
 
-    public final boolean ping(DProxy proxy) {
-        final DSettings settings = preferenceService.load();
+    public final boolean ping(ProxyDetails proxy) {
+        final SettingsDetails settings = preferenceService.load();
 
         try {
             final Future<Boolean> pingTask = preparePing(proxy, settings);
@@ -54,7 +52,7 @@ public final class ConnectionService {
         }
     }
 
-    private Future<Boolean> preparePing(DProxy proxy, DSettings settings) {
+    private Future<Boolean> preparePing(ProxyDetails proxy, SettingsDetails settings) {
         final ExecutorService executor = Executors.newSingleThreadExecutor();
         return executor.submit(() -> {
             try {
@@ -91,7 +89,7 @@ public final class ConnectionService {
         return title.equals(document.head().getElementsByTag("title").text());
     }
 
-    private Proxy createProxySocket(DProxy proxy) {
+    private Proxy createProxySocket(ProxyDetails proxy) {
         return proxy != null ? new Proxy(Proxy.Type.HTTP,
                 new InetSocketAddress(proxy.getHost(), proxy.getPort()))
                 : Proxy.NO_PROXY;

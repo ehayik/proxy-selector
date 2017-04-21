@@ -16,12 +16,10 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableView;
 import javafx.scene.image.ImageView;
 import org.controlsfx.control.StatusBar;
-import org.eljaiek.proxy.select.model.ProxyModel;
 import org.eljaiek.proxy.select.components.AlertManager;
 import org.eljaiek.proxy.select.components.MessageResolver;
 import org.eljaiek.proxy.select.components.ViewManager;
-import org.eljaiek.proxy.select.domain.DProxy;
-import org.eljaiek.proxy.select.model.ProxyModelMapper;
+import org.eljaiek.proxy.select.services.ProxyDetails;
 import org.eljaiek.proxy.select.services.ConnectionService;
 import org.eljaiek.proxy.select.services.ProxyService;
 import org.reactfx.util.FxTimer;
@@ -158,7 +156,7 @@ public final class HomeController implements Initializable {
         isPingTimerBusy.set(true);
         proxiesTableView.getItems().forEach(proxyModel -> {
             updateProgressMessage(proxyModel.getHostPort());
-            final DProxy proxy = proxyModelMapper.asDProxy(proxyModel);
+            final ProxyDetails proxy = proxyModelMapper.asProxyDetails(proxyModel);
             final boolean isConnected = connectionService.ping(proxy);
 
             if (isConnected && !proxyModel.isConnected()) {

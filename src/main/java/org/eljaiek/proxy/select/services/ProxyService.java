@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.eljaiek.proxy.select.domain.DProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,7 @@ public final class ProxyService {
     
     private static final Logger LOG = LoggerFactory.getLogger(ProxyService.class);
 
-    private final List<DProxy> proxies = new ArrayList<>();
+    private final List<ProxyDetails> proxies = new ArrayList<>();
 
     private final ObjectMapper jsonMapper;
 
@@ -28,11 +27,11 @@ public final class ProxyService {
         this.jsonMapper = mapper;
     }
 
-    public final List<DProxy> list() {
+    public final List<ProxyDetails> list() {
         return proxies;
     }
 
-    public final DProxy add(DProxy proxy) {       
+    public final ProxyDetails add(ProxyDetails proxy) {       
 
         if (exists(proxy)) {
             throw new DuplicateProxyException();
@@ -48,7 +47,7 @@ public final class ProxyService {
         });
     }
 
-    private boolean exists(DProxy proxy) {
+    private boolean exists(ProxyDetails proxy) {
         return proxies.stream()
                 .findFirst()
                 .filter(p -> {
@@ -64,10 +63,10 @@ public final class ProxyService {
         }
     }
 
-    public final List<DProxy> importFromJson(String file) {
+    public final List<ProxyDetails> importFromJson(String file) {
        
         try {
-            DProxy[] arr = jsonMapper.readValue(new File(file), DProxy[].class);
+            ProxyDetails[] arr = jsonMapper.readValue(new File(file), ProxyDetails[].class);
             proxies.clear();
             proxies.addAll(Arrays.asList(arr));
         } catch (IOException ex) {

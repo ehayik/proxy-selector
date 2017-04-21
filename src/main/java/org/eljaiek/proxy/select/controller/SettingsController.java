@@ -17,8 +17,8 @@ import org.controlsfx.validation.ValidationSupport;
 import org.eljaiek.proxy.select.util.ValidationUtils;
 import org.eljaiek.proxy.select.components.MessageResolver;
 import org.eljaiek.proxy.select.components.ViewManager;
-import org.eljaiek.proxy.select.domain.DSettings;
-import org.eljaiek.proxy.select.services.PreferenceService;
+import org.eljaiek.proxy.select.services.SettingsDetails;
+import org.eljaiek.proxy.select.services.PreferencesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class SettingsController implements Initializable {
     
-    private final PreferenceService prefService;
+    private final PreferencesService prefService;
 
     private final ViewManager viewManager;
 
@@ -52,7 +52,7 @@ public class SettingsController implements Initializable {
 
     private final ValidationSupport validationSupport = new ValidationSupport();
 
-    public SettingsController(PreferenceService prefService, ViewManager viewManager) {
+    public SettingsController(PreferencesService prefService, ViewManager viewManager) {
         this.prefService = prefService;
         this.viewManager = viewManager;        
     }
@@ -78,7 +78,7 @@ public class SettingsController implements Initializable {
                 new TimeUnitModel(messages.getMessage("timeUnit.MINUTES"), TimeUnit.MINUTES)               
         ));      
         
-        DSettings settings = prefService.load();
+        SettingsDetails settings = prefService.load();
         timeoutField.setText(String.valueOf(settings.getTimeout()));
         urlField.setText(settings.getUrl());
         titleField.setText(settings.getPageTitle());
@@ -92,7 +92,7 @@ public class SettingsController implements Initializable {
 
     @FXML
     void save(ActionEvent event) {        
-        prefService.save(DSettings
+        prefService.save(SettingsDetails
                 .builder()
                 .url(urlField.getText())
                 .pageTitle(titleField.getText())
